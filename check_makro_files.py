@@ -89,10 +89,3 @@ class CheckMakroFiles:
         else:
             logging.info(f"找到的文件名：{list(found_files.keys())}")
             return True, found_files, inconsistent_files
-
-# 示例用法
-if __name__ == "__main__":
-    checker = CheckMakroFiles()
-    zip_files = ["path/to/your/zip1.zip", "path/to/your/zip2.zip"]
-    template_file = "path/to/your/template.zip"
-    result, found_files, inconsistent_files = checker.run(zip_files, template_file)

@@ -16,7 +16,7 @@ class FileCheckerApp:
     def __init__(self, root):
         self.root = root
         self.root.title("KUKA机器人程序检查工具")
-        self.root.geometry("400x400")  # 设置窗口大小为 400x400 像素
+        self.root.geometry("500x400")  # 设置窗口大小为 500x400 像素
         
         # 创建样式
         self.style = ttk.Style()
@@ -31,13 +31,13 @@ class FileCheckerApp:
 
         # 创建按钮
         self.select_button = ttk.Button(root, text="选择文件", command=self.select_files)
-        self.select_button.pack(pady=40)
+        self.select_button.pack(pady=20)
 
         self.select_template_button = ttk.Button(root, text="选择模板文件", command=self.select_template_file)
-        self.select_template_button.pack(pady=40)
+        self.select_template_button.pack(pady=20)
 
         self.check_button = ttk.Button(root, text="开始检查", command=self.check_files, state=tk.DISABLED)
-        self.check_button.pack(pady=40)
+        self.check_button.pack(pady=20)
 
         self.zip_files = []
         self.template_file = None
