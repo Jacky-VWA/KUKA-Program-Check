@@ -7,7 +7,7 @@ import os
 from datetime import datetime
 from check_specifical_files import CheckSpecificalFiles
 from check_makro_files import CheckMakroFiles
-from check_user_files import CheckUserFiles  # 导入新的检查类
+from check_user_files import CheckUserFiles
 
 # 配置日志记录
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -99,6 +99,9 @@ class FileCheckerApp:
             # 保存结果到 Excel
             self.save_results_to_excel()
 
+            # 提示完成
+            messagebox.showinfo("完成", "文件检查已完成，结果已保存。")
+
         except Exception as e:
             logging.error(f"检查文件时出错: {e}")
             messagebox.showerror("错误", "检查文件时发生错误。")
@@ -112,27 +115,50 @@ class FileCheckerApp:
         excel_file_name = f"机器人程序检查结果_{current_date}.xlsx"
 
         # 创建一个 Excel Writer 对象
-        with pd.ExcelWriter(excel_file_name, engine='openpyxl') as writer:
-            for zip_file, checks in self.results.items():
-                # 创建 DataFrame
-                data = {
-                    "检查类型": [],
-                    "结果": [],
-                    "找到的文件": []
-                }
+        try:
+            with pd.ExcelWriter(excel_file_name, engine='openpyxl') as writer:
+                for zip_file, checks in self.results.items():
+                    # 创建 DataFrame
+                    data = {
+                        "检查类型": [],
+                        "结果": [],
+                        "找到的文件": [],
+                        "不一致的文件": []  # 新增字段
+                    }
 
-                for check_type, (result, *found_files) in checks.items():
-                    data["检查类型"].append(check_type)
-                    data["结果"].append(result)
-                    data["找到的文件"].append(", ".join(found_files[0]))
+                    for check_type, (result, *found_files) in checks.items():
+                        data["检查类型"].append(check_type)
+                        data["结果"].append(result)
 
-                df = pd.DataFrame(data)
-                df.to_excel(writer, sheet_name=os.path.basename(zip_file), index=False)
+                        # 处理找到的文件
+                        found_files_list = found_files[0] if found_files else []
+                        data["找到的文件"].append(", ".join(found_files_list))
 
-        logging.info(f"检查结果已保存到 {excel_file_name}。")
-        messagebox.showinfo("完成", f"检查结果已保存到 {excel_file_name}。")
+                        # 处理不一致的文件
+                        if check_type == "Makro 文件检查":
+                            inconsistent_files = found_files[1] if len(found_files) > 1 else []
+                            inconsistent_file_names = [file[1] for file in inconsistent_files]  # 提取文件名
+                            data["不一致的文件"].append(", ".join(inconsistent_file_names))
+                        elif check_type == "用户文件检查":
+                            differences = found_files[1] if len(found_files) > 1 else []  # 获取不一致的用户文件
+                            data["不一致的文件"].append(", ".join(differences))
+                        else:
+                            data["不一致的文件"].append("")  # 其他检查类型不需要不一致文件
 
-if __name__ == "__main__":
+                    df = pd.DataFrame(data)
+                    df.to_excel(writer, sheet_name=os.path.basename(zip_file), index=False)
+
+            logging.info(f"检查结果已保存到 {excel_file_name}")
+
+        except Exception as e:
+            logging.error(f"保存结果到 Excel 时出错: {e}")
+            messagebox.showerror("错误", "保存结果到 Excel 时发生错误。")
+
+def main():
+    """主函数"""
     root = tk.Tk()
     app = FileCheckerApp(root)
     root.mainloop()
+
+if __name__ == "__main__":
+    main()

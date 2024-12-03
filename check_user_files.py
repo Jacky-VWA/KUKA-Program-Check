@@ -1,6 +1,8 @@
 import zipfile
 import os
 
+print("是你")
+
 class CheckUserFiles:
     def run(self, zip_files, template_file=None):
         """
@@ -45,8 +47,10 @@ class CheckUserFiles:
                             found_files[file_info.filename] = text_file_name
 
     def compare_files(self, found_files_zip, found_files_template):
-        """比较 ZIP 文件和模板中的相同文件，返回差异文件列表。"""
+        """比较 ZIP 文件和模板中的相同文件，返回差异文件列表及对比信息。"""
         differences = []
+        comparison_info = []  # 用于存储比较信息
+
         for filename, zip_text_file in found_files_zip.items():
             template_text_file = found_files_template.get(filename)
             if template_text_file:
@@ -57,6 +61,31 @@ class CheckUserFiles:
                     template_content = template_file.read()
 
                 if zip_content != template_content:
-                    differences.append(filename)
+                    differences.append(filename)  # 记录不一致的文件名
+                    comparison_info.append(f"文件 {filename} 内容不一致。")  # 记录不一致信息
+
+                    # 记录具体的差异
+                    diff = self.get_diff(zip_content, template_content)
+                    comparison_info.append(diff)
+                else:
+                    comparison_info.append(f"文件 {filename} 内容一致。")  # 记录一致信息
+            else:
+                comparison_info.append(f"文件 {filename} 在模板中未找到。")  # 记录未找到信息
+
+        # 打印比较信息
+        for info in comparison_info:
+            print(info)
 
         return differences
+
+    def get_diff(self, content1, content2):
+        """获取两个文件内容的差异"""
+        lines1 = content1.splitlines()
+        lines2 = content2.splitlines()
+        diff_lines = []
+
+        for i, (line1, line2) in enumerate(zip(lines1, lines2)):
+            if line1 != line2:
+                diff_lines.append(f"行 {i + 1}: ZIP 文件内容: '{line1}' | 模板内容: '{line2}'")
+
+        return "\n".join(diff_lines) if diff_lines else "无具体差异。"
